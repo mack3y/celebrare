@@ -29,6 +29,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
   late TextEditingController _controller;
   late FocusNode _focusNode;
   Offset? _dragStartPosition;
+  Offset? _dragStartLocalPosition; // Track where user initially touched
 
   @override
   void initState() {
@@ -92,16 +93,20 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
             ? null
             : (details) {
                 _dragStartPosition = widget.textItem.position;
+                _dragStartLocalPosition = details.localPosition;
               },
         onPanUpdate: _isEditing
             ? null
             : (details) {
-                if (_dragStartPosition != null) {
-                  // Update position based on cumulative offset from start
+                if (_dragStartPosition != null &&
+                    _dragStartLocalPosition != null) {
+                  // Calculate new position maintaining the initial touch offset
+                  final delta =
+                      details.localPosition - _dragStartLocalPosition!;
                   widget.onDragUpdate(
                     Offset(
-                      _dragStartPosition!.dx + details.localPosition.dx - 8,
-                      _dragStartPosition!.dy + details.localPosition.dy - 8,
+                      _dragStartPosition!.dx + delta.dx,
+                      _dragStartPosition!.dy + delta.dy,
                     ),
                   );
                 }
@@ -110,6 +115,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
             ? null
             : (_) {
                 _dragStartPosition = null;
+                _dragStartLocalPosition = null;
                 widget.onDragEnd();
               },
         child: Container(
