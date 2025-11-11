@@ -17,23 +17,7 @@ class CanvasScreen extends StatelessWidget {
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.edit_note,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text('Canvas Editor'),
-          ],
-        ),
+        title: const Text('Canvas Editor'),
         actions: [
           // Undo button
           IconButton(
@@ -65,6 +49,7 @@ class CanvasScreen extends StatelessWidget {
         label: const Text('Add Text'),
         elevation: 4,
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 

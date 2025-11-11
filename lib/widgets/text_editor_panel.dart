@@ -47,7 +47,12 @@ class _TextEditorPanelState extends State<TextEditorPanel> {
     }
 
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+      padding: EdgeInsets.only(
+        left: isSmallScreen ? 12 : 16,
+        right: isSmallScreen ? 12 : 16,
+        top: isSmallScreen ? 12 : 16,
+        bottom: isSmallScreen ? 80 : 16, // Extra bottom padding for FAB
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -156,35 +161,63 @@ class _TextEditorPanelState extends State<TextEditorPanel> {
                 ),
               ),
               const SizedBox(width: 8),
-              SizedBox(
-                width: 70,
-                child: TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Size',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+              // Font size with increment/decrement buttons
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline, size: 20),
+                    onPressed: () {
+                      final newSize = (item.fontSize - 2).clamp(12.0, 120.0);
+                      stateManager.updateTextItem(
+                        item.id,
+                        item.copyWith(fontSize: newSize),
+                      );
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
                     ),
-                    filled: true,
-                    contentPadding: const EdgeInsets.symmetric(
+                    tooltip: 'Decrease size',
+                  ),
+                  Container(
+                    width: 45,
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 8,
                     ),
-                    isDense: true,
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      item.fontSize.round().toString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
-                  keyboardType: TextInputType.number,
-                  controller: TextEditingController(
-                    text: item.fontSize.round().toString(),
-                  ),
-                  onChanged: (value) {
-                    final size = double.tryParse(value);
-                    if (size != null && size >= 12 && size <= 120) {
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline, size: 20),
+                    onPressed: () {
+                      final newSize = (item.fontSize + 2).clamp(12.0, 120.0);
                       stateManager.updateTextItem(
                         item.id,
-                        item.copyWith(fontSize: size),
+                        item.copyWith(fontSize: newSize),
                       );
-                    }
-                  },
-                ),
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                    tooltip: 'Increase size',
+                  ),
+                ],
               ),
             ],
           ),
