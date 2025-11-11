@@ -35,6 +35,10 @@ class CanvasStateManager extends ChangeNotifier {
   final List<CanvasState> _redoStack = [];
   static const int maxHistorySize = 50;
 
+  // Throttling for drag performance
+  Offset? _lastUpdatePosition;
+  DateTime? _lastUpdateTime;
+
   CanvasState get currentState => _currentState;
   bool get canUndo => _undoStack.isNotEmpty;
   bool get canRedo => _redoStack.isNotEmpty;
@@ -87,7 +91,18 @@ class CanvasStateManager extends ChangeNotifier {
   }
 
   void updateTextPosition(String id, Offset position) {
-    // Remove throttling - let the local state in widget handle smoothness
+    final now = DateTime.now();
+    // Throttle updates to every 16ms (60fps) for smoother performance
+    if (_lastUpdateTime != null &&
+        now.difference(_lastUpdateTime!).inMilliseconds < 16 &&
+        _lastUpdatePosition != null &&
+        (position - _lastUpdatePosition!).distance < 2) {
+      return; // Skip this update if it's too soon and position barely changed
+    }
+
+    _lastUpdateTime = now;
+    _lastUpdatePosition = position;
+
     final item = _currentState.textItems.firstWhere((item) => item.id == id);
     final updatedItem = item.copyWith(position: position);
     final newItems = _currentState.textItems.map((item) {
@@ -98,6 +113,8 @@ class CanvasStateManager extends ChangeNotifier {
   }
 
   void savePositionChange(String id) {
+    _lastUpdateTime = null;
+    _lastUpdatePosition = null;
     _saveState();
     notifyListeners();
   }

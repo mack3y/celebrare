@@ -28,8 +28,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
   bool _isEditing = false;
   late TextEditingController _controller;
   late FocusNode _focusNode;
-  Offset _localDragOffset = Offset.zero;
-  bool _isDragging = false;
+  Offset? _dragStartPosition;
 
   @override
   void initState() {
@@ -69,12 +68,9 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate the effective position (base position + drag offset)
-    final effectivePosition = widget.textItem.position + _localDragOffset;
-    
     return Positioned(
-      left: effectivePosition.dx,
-      top: effectivePosition.dy,
+      left: widget.textItem.position.dx,
+      top: widget.textItem.position.dy,
       child: GestureDetector(
         onTap: () {
           // Always select the text first on tap
@@ -95,28 +91,25 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
         onPanStart: _isEditing
             ? null
             : (details) {
-                setState(() {
-                  _isDragging = true;
-                  _localDragOffset = Offset.zero;
-                });
+                _dragStartPosition = widget.textItem.position;
               },
         onPanUpdate: _isEditing
             ? null
             : (details) {
-                // Immediately update local offset for smooth visual feedback
-                setState(() {
-                  _localDragOffset += details.delta;
-                });
-                // Update parent state (throttled in state manager)
-                widget.onDragUpdate(widget.textItem.position + _localDragOffset);
+                if (_dragStartPosition != null) {
+                  // Update position based on cumulative offset from start
+                  widget.onDragUpdate(
+                    Offset(
+                      _dragStartPosition!.dx + details.localPosition.dx - 8,
+                      _dragStartPosition!.dy + details.localPosition.dy - 8,
+                    ),
+                  );
+                }
               },
         onPanEnd: _isEditing
             ? null
             : (_) {
-                setState(() {
-                  _isDragging = false;
-                  _localDragOffset = Offset.zero;
-                });
+                _dragStartPosition = null;
                 widget.onDragEnd();
               },
         child: Container(
